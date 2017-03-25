@@ -17,7 +17,7 @@ build:
 requirements:
     build:
         - gcc  # [not win]
-        - perl
+        - perl 5.22.2.1
         - toolchain
     run:
         - libgcc  # [linux]
