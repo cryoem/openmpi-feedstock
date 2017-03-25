@@ -10,7 +10,8 @@ export LIBRARY_PATH="$PREFIX/lib"
             --disable-dependency-tracking \
             --enable-mpi-cxx \
             --enable-mpi-fortran \
-            --with-wrapper-ldflags="-Wl,-rpath,$PREFIX/lib"
+            --with-wrapper-ldflags="-Wl,-rpath,$PREFIX/lib" \
+            --disable-dlopen
 
 make
 make install
