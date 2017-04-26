@@ -48,12 +48,3 @@ about:
         research, and industry partners.
     doc_url: https://www.open-mpi.org/doc/
     dev_url: https://github.com/open-mpi/ompi
-
-extra:
-    recipe-maintainers:
-        - astrofrog
-        - bekozi
-        - dalcinl
-        - minrk
-        - msarahan
-        - ocefpaf
