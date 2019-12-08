@@ -12,7 +12,7 @@ source:
     sha1: 80e39bc76ac2e3caf958a3db9985a9c81fddb8a6
 
 build:
-    number: 0
+    number: 1
     skip: True  # [win]
 
 outputs:
