@@ -16,16 +16,16 @@ build:
 
 requirements:
     build:
-        - gcc  # [not win]
-        - perl 5.22.2.1
-        - toolchain
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        - make  # [unix]
+        - perl 5.26.2
+    host:
+        - zlib
     run:
-        - libgcc  # [linux]
-        - libgfortran  # [osx]
+        - zlib
 
 test:
-    requires:
-        - gcc  # [not win]
     files:
         - tests/helloworld.c
         - tests/helloworld.cxx
