@@ -11,3 +11,10 @@ channels:
 github:
   user_or_org: cryoem
   repo_name: openmpi-feedstock
+
+provider:
+  linux: circle
+  osx: travis
+
+azure:
+  build_id: blank
