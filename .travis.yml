@@ -3,57 +3,19 @@
 
 language: generic
 
-os: osx
-osx_image: xcode6.4
-
 env:
-  matrix:
-    
-    - CONDA_PERL=5.22.2.1
   global:
     # The BINSTAR_TOKEN secure variable. This is defined canonically in conda-forge.yml.
-    - secure: "iCkE4oPGZOm2BICWjslmOICYI6p7JZIE1ZFLs2UIQQpzGZHm5tjXVKjtSSfwsh53vApmBcJ24opZx0Kr13wEN+NSfIBbe2tpN2bwzgbIUshabcwbJrFWwggnqhf8KyFuEw7swRsFnL4ZStmE30F8RIQbnZvYKHUk3QekKF5oee8KPoVkutJLs6KR8C5V9BgKbo5x+bjH68vwscMyyknvTiD2+kSGD3nH1uD7M/Fq7eE54YpdqfblVw8oFNR8NosWsZDe6xdzYPRwkX1MkNaOVlJXMl4QXCeR1aDL0mXS2HUkrUJFbD7GoRK5Vjv0usCdATRaWALpWR3WR/gL7dfyGDGC6TAZYg7WYfNBDkHnizqlPEUBKDkWEu7iemdD6VHONUfhomk1nFpiRfQzXs55MoCtDq1cSoQmv33B+PawKLDN3QNKjTP+GNCJDtpCZEf1vnEn1uT3AIzIveE5fVFKPBbz4+1UGpgC+HZLSbnzqa2Z8BGNvL1RFv+bs3VvxqFALZPod5EqnClcYAtX1ENRaXu2ydl1TwpxVo1Mqcz3dMXhJ3BJWpfWUkGfOulbdJp+J639Ft1YxRD+CI/mZixUV8wbHGypVDzDYVpD5R5rfzIy9KMPb+M3vl1xSjvdp8wOfirc2O/kEqu4qdTnQkdwo2OHxdB1hCBeCngf6b7HmGM="
+    - secure: "a4egY26J5RDtWki1GZImG7tTYgaeAy1wBhjG17QRYrIfc4HKH4h0iCZp7xdTsUsHsmGKcaoXtN52H7/FkAy3IvIPP79syRoEuWPEOeEiW763pHnlpigTNWlSAjC2vw2vrjK57/604gE5CG5pVRbjYZTGehpNP+xmZjVk8fXkLs4fApO59kxKTN8F/Ou5Kbh5RdhdSHtOg57dcsdzId/oPvRBfVIt8fn7sFWI7EJJWnOBhMb4c/YcJC+7D9JfBMzYYBpcownKy7MbqcLImq3KQQIWQAcwlwDHXAy05FtRnXjQmv6H90co/wDZ/R6WlbUqEP2IuW71AhIbK5fwbHsUpCtYZnUxO615v5qyPiNKZFTqYQrO7krqecvh+INgYQJzfn4tAkIlAiSlX8XkHyakoU3KWQtpfZj0cRYD+4ctZoeaMuLma3WGU0om2TucnVdMp8NL22uSocJn2CqrIkFsCeHKst5XHbi/dNYnB/wbeCqg0y8SC3xTy19ClQN2BkdDdeWXxPwkfQZWfFQ5AjB0gWVZo/j3zwrMDsohI6S8U/uTENThIk66fpyAoAKoCgPl0w9qNB7VfjEy8Nc3VnrvgJAmfrcEYQipBJOx3/noC4OLcfTPEQIlSJA14JdRV4ixJoMMINhKRllZ3fmxIvPHGgC7DOQwXP85NREeAwToYsk="
 
-
-before_install:
-    # Fast finish the PR.
-    - |
-      (curl https://raw.githubusercontent.com/conda-forge/conda-forge-build-setup-feedstock/master/recipe/ff_ci_pr_build.py | \
-          python - -v --ci "travis" "${TRAVIS_REPO_SLUG}" "${TRAVIS_BUILD_NUMBER}" "${TRAVIS_PULL_REQUEST}") || exit 1
-
-    # Remove homebrew.
-    - |
-      echo ""
-      echo "Removing homebrew from Travis CI to avoid conflicts."
-      curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/uninstall > ~/uninstall_homebrew
-      chmod +x ~/uninstall_homebrew
-      ~/uninstall_homebrew -fq
-      rm ~/uninstall_homebrew
-
-
-install:
-    # Install Miniconda.
-    - |
-      echo ""
-      echo "Installing a fresh version of Miniconda."
-      MINICONDA_URL="https://repo.continuum.io/miniconda"
-      MINICONDA_FILE="Miniconda3-latest-MacOSX-x86_64.sh"
-      curl -L -O "${MINICONDA_URL}/${MINICONDA_FILE}"
-      bash $MINICONDA_FILE -b
-
-    # Configure conda.
-    - |
-      echo ""
-      echo "Configuring conda."
-      source /Users/travis/miniconda3/bin/activate root
-      conda config --remove channels defaults
-      conda config --add channels defaults
-      conda config --add channels conda-forge
-      conda config --set show_channel_urls true
-      conda install --yes --quiet conda-forge-build-setup
-      source run_conda_forge_build_setup
+matrix:
+  include:
+    - env: CONFIG=osx_ UPLOAD_PACKAGES=True PLATFORM=osx-64
+      os: osx
+      osx_image: xcode9.4
 
 script:
-  - conda build ./recipe
+  - export CI=travis
+  - export GIT_BRANCH="$TRAVIS_BRANCH"
 
-  - upload_or_check_non_existence ./recipe cryoem --channel=main
+  - if [[ ${PLATFORM} =~ .*osx.* ]]; then ./.travis/run_osx_build.sh; fi
