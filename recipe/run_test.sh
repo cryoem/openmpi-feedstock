@@ -1,39 +1,36 @@
 #!/bin/bash
+set -ex
 
-command -v ompi_info
-ompi_info
+export OMPI_MCA_plm=isolated
+export OMPI_MCA_btl_vader_single_copy_mechanism=none
+export OMPI_MCA_rmaps_base_oversubscribe=yes
+MPIEXEC="${PWD}/mpiexec.sh"
 
-command -v mpicc
-mpicc -show
+pushd "tests"
 
-command -v mpicxx
-mpicxx -show
+if [[ $PKG_NAME == "openmpi" ]]; then
+  command -v ompi_info
+  ompi_info
 
-command -v mpif90
-mpif90 -show
-
-command -v mpiexec
-if [[ "$(uname)" == "Darwin" ]]; then
-  MPIEXEC="mpiexec -mca plm isolated --allow-run-as-root"
+  command -v mpiexec
   $MPIEXEC --help
-else
-  # skip mpiexec tests on Linux due to conda-forge bug:
-  # https://github.com/conda-forge/conda-smithy/pull/337
-  MPIEXEC="echo SKIPPING mpiexec"
+  $MPIEXEC -n 4 ./helloworld.sh
 fi
 
-pushd $RECIPE_DIR/tests
+if [[ $PKG_NAME == "openmpi-mpicc" ]]; then
+  command -v mpicc
+  mpicc -show
 
-mpicc helloworld.c -o helloworld_c
-$MPIEXEC -n 4 ./helloworld_c
+  mpicc $CFLAGS $LDFLAGS helloworld.c -o helloworld_c
+  $MPIEXEC -n 4 ./helloworld_c
+fi
 
-mpicxx helloworld.cxx -o helloworld_cxx
-$MPIEXEC -n 4 ./helloworld_cxx
+if [[ $PKG_NAME == "openmpi-mpicxx" ]]; then
+  command -v mpicxx
+  mpicxx -show
 
-mpif77 helloworld.f -o helloworld_f
-$MPIEXEC -n 4 ./helloworld_f
-
-mpif90 helloworld.f90 -o helloworld_f90
-$MPIEXEC -n 4 ./helloworld_f90
+  mpicxx $CXXFLAGS $LDFLAGS helloworld.cxx -o helloworld_cxx
+  $MPIEXEC -n 4 ./helloworld_cxx
+fi
 
 popd

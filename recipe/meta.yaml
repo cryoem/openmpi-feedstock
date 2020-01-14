@@ -2,8 +2,9 @@
 {% set major = ".".join(version.split(".")[:2]) %}
 
 package:
-    name: openmpi
-    version: {{ version }}
+  # must not match any outputs for requirements to be handled correctly
+  name: openmpi-mpi
+  version: {{ version }}
 
 source:
     fn: openmpi-{{ version }}.tar.bz2
@@ -11,29 +12,67 @@ source:
     sha1: 80e39bc76ac2e3caf958a3db9985a9c81fddb8a6
 
 build:
-    number: 0
+    number: 1
     skip: True  # [win]
 
-requirements:
+outputs:
+  - name: openmpi
+    script: build-mpi.sh
     build:
-        - gcc  # [not win]
-        - perl
-        - toolchain
-    run:
-        - libgcc  # [linux]
-        - libgfortran  # [osx]
+      run_exports:
+        - {{ pin_subpackage('openmpi', min_pin='x.x.x', max_pin='x.x') }}
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        - make  # [unix]
+        - perl 5.26.2
+      host:
+        - zlib
+      run:
+        - zlib
+        - mpi 1.0 openmpi
+    test:
+      script: run_test.sh
+      files:
+        - mpiexec.sh
+        - tests/helloworld.sh
 
-test:
-    requires:
-        - gcc  # [not win]
-    files:
+  - name: openmpi-mpicc
+    build:
+      script:
+        - echo 'ok'  # [not osx]
+        # make CONDA_BUILD_SYSROOT a 'used variable'
+        # so that conda-build knows to pass it to the test env
+        - echo "{{CONDA_BUILD_SYSROOT}}"  # [osx]
+    requirements:
+      run:
+        - {{ pin_subpackage('openmpi', exact=True) }}
+        # host C compilers work fine (better) on mac
+        - {{ compiler('c') }}
+    test:
+      script: run_test.sh
+      files:
+        - mpiexec.sh
         - tests/helloworld.c
+
+  - name: openmpi-mpicxx
+    build:
+      script:
+        - echo 'ok'  # [not osx]
+        # make CONDA_BUILD_SYSROOT a 'used variable'
+        # so that conda-build knows to pass it to the test env
+        - echo "{{CONDA_BUILD_SYSROOT}}"  # [osx]
+    requirements:
+      run:
+        - {{ pin_subpackage('openmpi', exact=True) }}
+        # host C compilers work fine (better) on mac
+        - {{ compiler('cxx') }}
+    test:
+      script: run_test.sh
+      files:
+        - mpiexec.sh
         - tests/helloworld.cxx
-        - tests/helloworld.f
-        - tests/helloworld.f90
-    commands:
-        - conda inspect objects openmpi  # [osx]
-        - conda inspect linkages openmpi  # [not win]
 
 
 about:
@@ -48,12 +87,3 @@ about:
         research, and industry partners.
     doc_url: https://www.open-mpi.org/doc/
     dev_url: https://github.com/open-mpi/ompi
-
-extra:
-    recipe-maintainers:
-        - astrofrog
-        - bekozi
-        - dalcinl
-        - minrk
-        - msarahan
-        - ocefpaf
